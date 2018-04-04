@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Necessity
 {
@@ -9,6 +10,21 @@ namespace Necessity
             return target.ContainsKey(key)
                 ? target[key]
                 : default(TVal);
+        }
+
+        public static TVal GetOrAdd<TKey, TVal>(this IDictionary<TKey, TVal> target, TKey key, Func<TKey, TVal> valueFactoryFn)
+        {
+            if (target.ContainsKey(key))
+            {
+                return target[key];
+            }
+
+            var createdValue = valueFactoryFn(key);
+
+            target.Add(key, createdValue);
+
+            return createdValue;
+
         }
     }
 }
