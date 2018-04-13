@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -18,6 +19,18 @@ namespace Necessity
 
                 onErrorAct(res);
                 return Task.FromResult(default(T));
+            };
+        }
+
+        public static Func<HttpResponseMessage, Stream, Task<T>> Deserialize<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn)
+        {
+            return (res, stream) =>
+            {
+                using (var textReader = new StreamReader(stream))
+                using (var jsonReader = new JsonTextReader(textReader))
+                {
+                    return Task.FromResult(new JsonSerializer().Deserialize<T>(jsonReader));
+                }
             };
         }
     }
