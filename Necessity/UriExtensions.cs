@@ -4,14 +4,17 @@ namespace Necessity
 {
     public static class UriExtensions
     {
-        public static Uri Append(this Uri baseUri, string appendable)
+        public static Uri Append(this Uri baseUri, string appendable, string pathSeparator = "/")
         {
-            return new Uri($"{baseUri.AbsoluteUri.TrimEnd('/')}/{appendable.TrimStart('/')}");
+            return new Uri(
+                baseUri.AbsoluteUri.TrimEnd(pathSeparator[0])
+                    + pathSeparator
+                    + appendable.TrimStart(pathSeparator[0]));
         }
 
-        public static Uri Append<T>(this Uri baseUri, Func<T, string> formatFn, T parameters)
+        public static Uri Append<T>(this Uri baseUri, Func<T, string> formatFn, T parameters, string pathSeparator = "/")
         {
-            return Append(baseUri, formatFn(parameters));
+            return Append(baseUri, formatFn(parameters), pathSeparator);
         }
     }
 }
