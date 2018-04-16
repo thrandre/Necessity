@@ -14,5 +14,11 @@ namespace Necessity
             act(@in);
             return @in;
         }
+
+        public static Func<TIn, TOut2> Compose<TIn, TOut1, TOut2>(this Func<TIn, TOut1> fn1, Func<TOut1, TOut2> fn2)
+        {
+            return @in =>
+                fn2(fn1(@in));
+        }
     }
 }
