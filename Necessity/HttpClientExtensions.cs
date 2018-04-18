@@ -8,7 +8,7 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
-        public static Func<HttpResponseMessage, Stream, Task<T>> HandleErrors<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Action<HttpResponseMessage> onErrorAct)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Action<HttpResponseMessage> onErrorAct)
         {
             return (res, stream) =>
             {
@@ -22,16 +22,13 @@ namespace Necessity
             };
         }
 
-        public static Func<HttpResponseMessage, Stream, Task<T>> Deserialize<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn)
+        public static Task<T> Deserialize<T>(HttpResponseMessage response, Stream stream)
         {
-            return (res, stream) =>
+            using (var textReader = new StreamReader(stream))
+            using (var jsonReader = new JsonTextReader(textReader))
             {
-                using (var textReader = new StreamReader(stream))
-                using (var jsonReader = new JsonTextReader(textReader))
-                {
-                    return Task.FromResult(new JsonSerializer().Deserialize<T>(jsonReader));
-                }
-            };
+                return Task.FromResult(new JsonSerializer().Deserialize<T>(jsonReader));
+            }
         }
     }
 
