@@ -22,12 +22,18 @@ namespace Necessity
             };
         }
 
-        public static Task<T> Deserialize<T>(HttpResponseMessage response, Stream stream)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetDeserializer<T>(JsonSerializer serializer)
+        {
+            return (message, stream) =>
+                Deserialize<T>(message, stream, serializer);
+        }
+
+        public static Task<T> Deserialize<T>(HttpResponseMessage response, Stream stream, JsonSerializer serializer = null)
         {
             using (var textReader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(textReader))
             {
-                return Task.FromResult(new JsonSerializer().Deserialize<T>(jsonReader));
+                return Task.FromResult((serializer ?? new JsonSerializer()).Deserialize<T>(jsonReader));
             }
         }
     }
