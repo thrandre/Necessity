@@ -25,5 +25,10 @@ namespace Necessity
         {
             return in2 => target(val, in2);
         }
+
+        public static Action<TIn2> Partial<TIn1, TIn2>(this Action<TIn1, TIn2> target, TIn1 val)
+        {
+            return in2 => target(val, in2);
+        }
     }
 }
