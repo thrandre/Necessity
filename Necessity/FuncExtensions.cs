@@ -20,5 +20,10 @@ namespace Necessity
             return @in =>
                 fn2(fn1(@in));
         }
+
+        public static Func<TIn2, TOut> Partial<TIn1, TIn2, TOut>(this Func<TIn1, TIn2, TOut> target, TIn1 val)
+        {
+            return in2 => target(val, in2);
+        }
     }
 }
