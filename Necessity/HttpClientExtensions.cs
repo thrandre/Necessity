@@ -38,6 +38,21 @@ namespace Necessity
         }
     }
 
+    public static class RequestFormatters
+    {
+        public static string Serialize(object obj, JsonSerializer serializer)
+        {
+            using(var stringWriter = new StringWriter())
+            {
+                serializer.Serialize(stringWriter, obj);
+
+                stringWriter.Flush();
+
+                return stringWriter.ToString();
+            }
+        }
+    }
+
     public static class HttpClientExtensions
     {
         public static async Task<T> SendAndStreamResultAsync<T>(
