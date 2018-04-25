@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Necessity
@@ -58,7 +59,8 @@ namespace Necessity
             serializer.Serialize(streamWriter, obj);
             streamWriter.Flush();
 
-            return new StreamContent(memoryStream);
+            return new StreamContent(memoryStream)
+                .Pipe(x => { x.Headers.ContentType = new MediaTypeHeaderValue("application/json"); });
         }
     }
 
