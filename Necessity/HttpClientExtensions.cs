@@ -8,27 +8,37 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Action<HttpResponseMessage> onErrorAct)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Action<HttpResponseMessage> onHttpError = null, Action<Exception> onException = null)
         {
             return (res, stream) =>
             {
-                if (res.IsSuccessStatusCode)
+                try
                 {
-                    return innerFn(res, stream);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        return innerFn(res, stream);
+                    }
+
+                    onHttpError?.Invoke(res);
+
+                    return Task.FromResult(default(T));
+                }
+                catch (Exception exception)
+                {
+                    (onException ?? (e => throw e))(exception);
                 }
 
-                onErrorAct(res);
                 return Task.FromResult(default(T));
             };
         }
 
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetDeserializer<T>(JsonSerializer serializer)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetJsonDeserializer<T>(JsonSerializer serializer)
         {
             return (message, stream) =>
-                Deserialize<T>(message, stream, serializer);
+                JsonDeserialize<T>(message, stream, serializer);
         }
 
-        public static Task<T> Deserialize<T>(HttpResponseMessage response, Stream stream, JsonSerializer serializer = null)
+        public static Task<T> JsonDeserialize<T>(HttpResponseMessage response, Stream stream, JsonSerializer serializer = null)
         {
             using (var textReader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(textReader))
@@ -40,16 +50,15 @@ namespace Necessity
 
     public static class RequestFormatters
     {
-        public static string Serialize(object obj, JsonSerializer serializer)
+        public static StreamContent GetJsonBody<T>(T obj, JsonSerializer serializer)
         {
-            using(var stringWriter = new StringWriter())
-            {
-                serializer.Serialize(stringWriter, obj);
+            var memoryStream = new MemoryStream();
+            var streamWriter = new StreamWriter(memoryStream);
 
-                stringWriter.Flush();
+            serializer.Serialize(streamWriter, obj);
+            streamWriter.Flush();
 
-                return stringWriter.ToString();
-            }
+            return new StreamContent(memoryStream);
         }
     }
 
