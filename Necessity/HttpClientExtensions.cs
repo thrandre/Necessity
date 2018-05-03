@@ -59,6 +59,8 @@ namespace Necessity
             serializer.Serialize(streamWriter, obj);
             streamWriter.Flush();
 
+            memoryStream.Position = 0;
+
             return new StreamContent(memoryStream)
                 .Pipe(x => { x.Headers.ContentType = new MediaTypeHeaderValue("application/json"); });
         }
