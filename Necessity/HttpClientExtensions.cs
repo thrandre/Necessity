@@ -9,20 +9,15 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Action<HttpResponseMessage> onHttpError = null, Action<Exception> onException = null)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, Task<T>> onHttpError = null, Action<Exception> onException = null)
         {
             return (res, stream) =>
             {
                 try
                 {
-                    if (res.IsSuccessStatusCode)
-                    {
-                        return innerFn(res, stream);
-                    }
-
-                    onHttpError?.Invoke(res);
-
-                    return Task.FromResult(default(T));
+                    return res.IsSuccessStatusCode
+                        ? innerFn(res, stream)
+                        : onHttpError?.Invoke(res);
                 }
                 catch (Exception exception)
                 {
