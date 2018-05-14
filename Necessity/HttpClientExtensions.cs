@@ -11,20 +11,34 @@ namespace Necessity
     {
         public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, Task<T>> onHttpError = null, Func<Exception, Task> onException = null)
         {
-            return (res, stream) =>
+            return async (res, stream) =>
             {
                 try
                 {
-                    return res.IsSuccessStatusCode
-                        ? innerFn(res, stream)
-                        : onHttpError?.Invoke(res);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        return await innerFn(res, stream).ConfigureAwait(false);
+                    }
+
+                    if (onHttpError == null)
+                    {
+                        return default(T);
+                    }
+
+                    await onHttpError(res).ConfigureAwait(false);
+
+                    return default(T);
+
                 }
                 catch (Exception exception)
                 {
-                    (onException ?? (e => throw e))(exception);
+                    if (onException != null)
+                    {
+                        await onException(exception).ConfigureAwait(false);
+                    }
                 }
 
-                return Task.FromResult(default(T));
+                return default(T);
             };
         }
 
