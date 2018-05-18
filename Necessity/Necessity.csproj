@@ -6,7 +6,7 @@
     <RootNamespace>Necessity</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>thrandre.Necessity</PackageId>
-    <Version>4.0.1</Version>
+    <Version>5.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
