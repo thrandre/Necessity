@@ -26,6 +26,11 @@ namespace Necessity
             return in2 => target(val, in2);
         }
 
+        public static Func<TIn2, TIn3, TOut> Partial<TIn1, TIn2, TIn3, TOut>(this Func<TIn1, TIn2, TIn3, TOut> target, TIn1 val)
+        {
+            return (in2, in3) => target(val, in2, in3);
+        }
+
         public static Action<TIn2> Partial<TIn1, TIn2>(this Action<TIn1, TIn2> target, TIn1 val)
         {
             return in2 => target(val, in2);

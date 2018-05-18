@@ -9,6 +9,12 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<Exception, Task> onException,
+            Func<HttpResponseMessage, Task<T>> onHttpError, Func<HttpResponseMessage, Stream, Task<T>> innerFn)
+        {
+            return GetErrorHandler(innerFn, onHttpError, onException);
+        }
+
         public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, Task<T>> onHttpError = null, Func<Exception, Task> onException = null)
         {
             return async (res, stream) =>
@@ -25,10 +31,7 @@ namespace Necessity
                         return default(T);
                     }
 
-                    await onHttpError(res).ConfigureAwait(false);
-
-                    return default(T);
-
+                    return await onHttpError(res).ConfigureAwait(false);
                 }
                 catch (Exception exception)
                 {
@@ -60,6 +63,11 @@ namespace Necessity
 
     public static class RequestFormatters
     {
+        public static StreamContent GetJsonBody<T>(JsonSerializer serializer, T obj)
+        {
+            return GetJsonBody(obj, serializer);
+        }
+
         public static StreamContent GetJsonBody<T>(T obj, JsonSerializer serializer)
         {
             var memoryStream = new MemoryStream();
