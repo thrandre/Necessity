@@ -24,7 +24,6 @@ namespace Necessity
             target.Add(key, createdValue);
 
             return createdValue;
-
         }
 
         public static void AddOrUpdate<TKey, TVal>(this IDictionary<TKey, TVal> target, TKey key, Func<TKey, TVal> valueFactoryFn)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 
 namespace Necessity
@@ -10,18 +11,34 @@ namespace Necessity
     {
         public static Uri AppendPath(this Uri baseUri, string appendable)
         {
-            return new Uri(
-                baseUri.AbsoluteUri.TrimEnd('/')
-                    + "/"
-                    + appendable.TrimStart('/'));
+            return baseUri.AbsoluteUri
+                .Split('?')
+                .Pipe(x =>
+                {
+                    var path = x[0];
+                    var qs = x.Length > 1 ? x[1] : string.Empty;
+
+                    return path.TrimEnd('/') +
+                           "/" +
+                           appendable.TrimStart('/') + (
+                               !string.IsNullOrEmpty(qs)
+                                   ? "?" + qs
+                                   : string.Empty);
+                })
+                .Pipe(x => new Uri(x));
         }
 
-        public static Uri AppendPath<T>(this Uri baseUri, Func<T, string> formatFn, T parameters)
+        public static Uri AppendQueryStringParameters<T>(this Uri uri, T obj)
         {
-            return AppendPath(baseUri, formatFn(parameters));
+            var props = typeof(T)
+                .GetRuntimeProperties()
+                .Select(x => (Key: x.Name, Value: x.GetValue(obj)))
+                .ToDictionary(x => x.Key, x => x.Value.ToString());
+
+            return InternalAppendQueryStringParameters(uri, props);
         }
 
-        public static Uri AppendQueryStringParameters(this Uri uri, Dictionary<string, string> queryStringParameters)
+        private static Uri InternalAppendQueryStringParameters(this Uri uri, Dictionary<string, string> queryStringParameters)
         {
             var (path, qsp) = uri.Parse();
 
@@ -30,13 +47,18 @@ namespace Necessity
                 qsp.AddOrUpdate(pkvp.Key, _ => pkvp.Value);
             }
 
-            return FormatUri(path, qsp);
+            return CreateUri(path, qsp);
         }
 
-        public static Uri FormatUri(Uri path, IDictionary<string, string> queryStringParameters)
+        public static Uri CreateUri(Uri path, IDictionary<string, string> queryStringParameters)
         {
-            return $"{path.AbsoluteUri}?{string.Join("&", queryStringParameters.Select(x => $"{WebUtility.UrlEncode(x.Key)}={WebUtility.UrlEncode(x.Value)}"))}"
-                .Pipe(x => new Uri(x));
+            return (path.AbsoluteUri + "?" +
+                   string.Join(
+                       "&",
+                       queryStringParameters
+                           .Where(x => !string.IsNullOrEmpty(x.Value))
+                           .Select(x => $"{WebUtility.UrlEncode(x.Key)}={WebUtility.UrlEncode(x.Value)}")))
+                       .Pipe(x => new Uri(x));
         }
 
         public static (Uri Path, Dictionary<string, string> QueryParams) Parse(this Uri target)
