@@ -33,7 +33,7 @@ namespace Necessity
             var props = typeof(T)
                 .GetRuntimeProperties()
                 .Select(x => (Key: x.Name, Value: x.GetValue(obj)))
-                .ToDictionary(x => x.Key, x => x.Value.ToString());
+                .ToDictionary(x => x.Key, x => x.Value?.ToString());
 
             return InternalAppendQueryStringParameters(uri, props);
         }
