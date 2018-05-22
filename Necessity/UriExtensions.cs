@@ -50,6 +50,16 @@ namespace Necessity
             return CreateUri(path, qsp);
         }
 
+        private static string EncodeUrlFragment(string fragment)
+        {
+            return WebUtility.UrlEncode(fragment)?.Replace("+", "%20");
+        }
+
+        private static string DecodeUrlFragment(string fragment)
+        {
+            return WebUtility.UrlDecode(fragment);
+        }
+
         public static Uri CreateUri(Uri path, IDictionary<string, string> queryStringParameters)
         {
             return (path.AbsoluteUri + "?" +
@@ -57,7 +67,7 @@ namespace Necessity
                        "&",
                        queryStringParameters
                            .Where(x => !string.IsNullOrEmpty(x.Value))
-                           .Select(x => $"{WebUtility.UrlEncode(x.Key)}={WebUtility.UrlEncode(x.Value)}")))
+                           .Select(x => $"{EncodeUrlFragment(x.Key)}={EncodeUrlFragment(x.Value)}")))
                        .Pipe(x => new Uri(x));
         }
 
@@ -106,7 +116,7 @@ namespace Necessity
 
                 if (c == '&' || i == absUri.Length)
                 {
-                    qs.Add((WebUtility.UrlDecode(lookbackBuffer.ToString()), WebUtility.UrlDecode(buffer.ToString())));
+                    qs.Add((DecodeUrlFragment(lookbackBuffer.ToString()), DecodeUrlFragment(buffer.ToString())));
 
                     buffer.Clear();
                     lookbackBuffer.Clear();
