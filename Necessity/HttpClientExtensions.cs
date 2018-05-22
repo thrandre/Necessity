@@ -9,12 +9,6 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<Exception, Task> onException,
-            Func<HttpResponseMessage, Task<T>> onHttpError, Func<HttpResponseMessage, Stream, Task<T>> innerFn)
-        {
-            return GetErrorHandler(innerFn, onHttpError, onException);
-        }
-
         public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, Task<T>> onHttpError = null, Func<Exception, Task> onException = null)
         {
             return async (res, stream) =>
@@ -67,23 +61,23 @@ namespace Necessity
 
     public static class RequestFormatters
     {
-        public static StreamContent GetJsonBody<T>(JsonSerializer serializer, T obj)
+        public static StreamContent GetJsonBody<T>(T obj, JsonSerializer serializer)
         {
-            return GetJsonBody(obj, serializer);
+            return GetStreamContent(sw => serializer.Serialize(sw, obj), "application/json");
         }
 
-        public static StreamContent GetJsonBody<T>(T obj, JsonSerializer serializer)
+        public static StreamContent GetStreamContent(Action<StreamWriter> writeContentAct, string contentType)
         {
             var memoryStream = new MemoryStream();
             var streamWriter = new StreamWriter(memoryStream);
 
-            serializer.Serialize(streamWriter, obj);
-            streamWriter.Flush();
+            writeContentAct(streamWriter);
 
+            streamWriter.Flush();
             memoryStream.Position = 0;
 
             return new StreamContent(memoryStream)
-                .Pipe(x => { x.Headers.ContentType = new MediaTypeHeaderValue("application/json"); });
+                .Pipe(x => { x.Headers.ContentType = new MediaTypeHeaderValue(contentType); });
         }
     }
 
