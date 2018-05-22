@@ -9,7 +9,7 @@ namespace Necessity
 {
     public static class ResponseHandlers
     {
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, Task<T>> onHttpError = null, Func<Exception, Task> onException = null)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetErrorHandler<T>(Func<HttpResponseMessage, Stream, Task<T>> innerFn, Func<HttpResponseMessage, string, Task<T>> onHttpError = null, Func<Exception, Task> onException = null)
         {
             return async (res, stream) =>
             {
@@ -25,7 +25,10 @@ namespace Necessity
                         return default(T);
                     }
 
-                    return await onHttpError(res).ConfigureAwait(false);
+                    using (var sw = new StreamReader(stream))
+                    {
+                        return await onHttpError(res, sw.ReadToEnd()).ConfigureAwait(false);
+                    }
                 }
                 catch (Exception exception)
                 {
