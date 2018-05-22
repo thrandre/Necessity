@@ -39,6 +39,10 @@ namespace Necessity
                     {
                         await onException(exception).ConfigureAwait(false);
                     }
+                    else
+                    {
+                        throw;
+                    }
                 }
 
                 return default(T);
