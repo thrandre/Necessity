@@ -86,6 +86,22 @@ namespace Necessity
 
     public static class HttpClientExtensions
     {
+        public static async Task<Stream> SendAndReturnContentStreamAsync(
+            this HttpClient client,
+            Action<HttpRequestMessage> configureRequest)
+        {
+            var res = await client
+                .SendAsync(new HttpRequestMessage()
+                    .Pipe(configureRequest ?? (_ => { })), HttpCompletionOption.ResponseHeadersRead)
+                .ConfigureAwait(false);
+
+            var responseStream = res.Content != null
+                ? await res.Content.ReadAsStreamAsync().ConfigureAwait(false)
+                : Stream.Null;
+
+            return responseStream;
+        }
+
         public static async Task<T> SendAndStreamResultAsync<T>(
             this HttpClient client,
             Action<HttpRequestMessage> configureRequest,
