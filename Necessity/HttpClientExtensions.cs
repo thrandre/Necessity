@@ -86,7 +86,7 @@ namespace Necessity
 
     public static class HttpClientExtensions
     {
-        public static async Task<Stream> SendAndReturnContentStreamAsync(
+        public static async Task<HttpResponseMessage> SendAndGetResponseAsync(
             this HttpClient client,
             Action<HttpRequestMessage> configureRequest)
         {
@@ -95,11 +95,7 @@ namespace Necessity
                     .Pipe(configureRequest ?? (_ => { })), HttpCompletionOption.ResponseHeadersRead)
                 .ConfigureAwait(false);
 
-            var responseStream = res.Content != null
-                ? await res.Content.ReadAsStreamAsync().ConfigureAwait(false)
-                : Stream.Null;
-
-            return responseStream;
+            return res;
         }
 
         public static async Task<T> SendAndStreamResultAsync<T>(
