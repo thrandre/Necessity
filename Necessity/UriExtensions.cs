@@ -9,7 +9,7 @@ namespace Necessity
 {
     public static class UriExtensions
     {
-        public static Uri AppendPath(this Uri baseUri, string appendable)
+        public static Uri AppendPath(this Uri baseUri, string appendablePath)
         {
             return baseUri.AbsoluteUri
                 .Split('?')
@@ -20,7 +20,7 @@ namespace Necessity
 
                     return path.TrimEnd('/') +
                            "/" +
-                           appendable.TrimStart('/') + (
+                           appendablePath.TrimStart('/') + (
                                !string.IsNullOrEmpty(qs)
                                    ? "?" + qs
                                    : string.Empty);
