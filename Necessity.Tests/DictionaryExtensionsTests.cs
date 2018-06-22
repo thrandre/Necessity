@@ -58,8 +58,8 @@ namespace Necessity.Tests
                 {1, "test"}
             };
 
-            dict.AddOrUpdate(1, key => "foo");
-            dict.AddOrUpdate(2, key => "foobar");
+            dict.AddOrUpdate(1, (key, oldValue) => "foo");
+            dict.AddOrUpdate(2, (key, oldValue) => "foobar");
 
             dict.Should().Contain(new KeyValuePair<int, string>(1, "foo"), new KeyValuePair<int, string>(2, "foobar"));
         }

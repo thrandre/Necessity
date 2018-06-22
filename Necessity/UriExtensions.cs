@@ -44,7 +44,7 @@ namespace Necessity
 
             foreach (var pkvp in queryStringParameters)
             {
-                qsp.AddOrUpdate(pkvp.Key, _ => pkvp.Value);
+                qsp.AddOrUpdate(pkvp.Key, (_, __) => pkvp.Value);
             }
 
             return CreateUri(path, qsp);

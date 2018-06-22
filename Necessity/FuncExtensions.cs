@@ -45,6 +45,20 @@ namespace Necessity
             return @in;
         }
 
+        public static TIn PipeIf<TIn>(this TIn target, Func<TIn, bool> predicate, Action<TIn> fn)
+        {
+            return predicate(target)
+                ? target.Pipe(fn)
+                : target;
+        }
+
+        public static TIn PipeIf<TIn>(this TIn target, Func<TIn, bool> predicate, Func<TIn, TIn> fn)
+        {
+            return predicate(target)
+                ? target.Pipe(fn)
+                : target;
+        }
+
         public static Func<TIn, TOut2> Compose<TIn, TOut1, TOut2>(this Func<TIn, TOut1> fn1, Func<TOut1, TOut2> fn2)
         {
             return @in =>
