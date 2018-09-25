@@ -148,7 +148,7 @@ namespace Necessity
                 .Select(paramPair => (
                     Name: paramPair.Value,
                     Value: extractedParams.GetOrDefault(paramPair.Value)))
-                .ToDictionary(pair => pair.Name, pair => pair.Value);
+                .ToDictionary(pair => DecodeUrlFragment(pair.Name), pair => DecodeUrlFragment(pair.Value));
         }
 
         public static (Uri HostFragment, Dictionary<string, string> UriParams, Dictionary<string, string> QueryParams) Parse(this Uri target, string uriPattern)
