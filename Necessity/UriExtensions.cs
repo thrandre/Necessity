@@ -71,28 +71,22 @@ namespace Necessity
                        .Pipe(x => new Uri(x));
         }
 
-        public static (Uri Path, Dictionary<string, string> QueryParams) Parse(this Uri target)
+        private static Dictionary<string, string> ExtractQueryStringParams(string pathAndQuery)
         {
-            var absUri = target.AbsoluteUri;
-
             var buffer = new StringBuilder();
             var lookbackBuffer = new StringBuilder();
-
-            var path = string.Empty;
-            var qs = new List<(string Key, string Value)>();
-
             var qsSepSeen = false;
 
-            for (var i = 0; i <= absUri.Length; i++)
+            var qs = new Dictionary<string, string>();
+
+            for (var i = 0; i <= pathAndQuery.Length; i++)
             {
-                var c = i < absUri.Length
-                    ? absUri[i]
+                var c = i < pathAndQuery.Length
+                    ? pathAndQuery[i]
                     : char.MinValue;
 
-                if (c == '?' || !qsSepSeen && i == absUri.Length)
+                if (c == '?' || !qsSepSeen && i == pathAndQuery.Length)
                 {
-                    path = buffer.ToString();
-
                     buffer.Clear();
                     qsSepSeen = true;
 
@@ -114,9 +108,9 @@ namespace Necessity
                     continue;
                 }
 
-                if (c == '&' || i == absUri.Length)
+                if (c == '&' || i == pathAndQuery.Length)
                 {
-                    qs.Add((DecodeUrlFragment(lookbackBuffer.ToString()), DecodeUrlFragment(buffer.ToString())));
+                    qs.Add(DecodeUrlFragment(lookbackBuffer.ToString()), DecodeUrlFragment(buffer.ToString()));
 
                     buffer.Clear();
                     lookbackBuffer.Clear();
@@ -127,7 +121,54 @@ namespace Necessity
                 buffer.Append(c);
             }
 
-            return (new Uri(path), qs.ToDictionary(x => x.Key, x => x.Value));
+            return qs;
+        }
+
+        private static Dictionary<string, string> ExtractUriParams(string path, string uriPattern)
+        {
+            path = path.StartsWith("/")
+                ? path
+                : "/" + path;
+
+            var paramsAndIndices = uriPattern
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select((fragment, fragmentIndex) => (Idx: fragmentIndex, Fragment: fragment))
+                .Where(fragmentPair => fragmentPair.Fragment.StartsWith("{") && fragmentPair.Fragment.EndsWith("}"))
+                .ToDictionary(fragmentPair => fragmentPair.Idx, fragmentPair => fragmentPair.Fragment.TrimStart('{').TrimEnd('}'));
+
+            var extractedParams = path
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select((fragment, fragmentIndex) => paramsAndIndices.ContainsKey(fragmentIndex)
+                    ? (Name: paramsAndIndices[fragmentIndex], Value: fragment)
+                    : default)
+                .Where(fragmentPair => !string.IsNullOrEmpty(fragmentPair.Name))
+                .ToDictionary(fragmentPair => fragmentPair.Name, fragmentPair => fragmentPair.Value);
+
+            return paramsAndIndices
+                .Select(paramPair => (
+                    Name: paramPair.Value,
+                    Value: extractedParams.GetOrDefault(paramPair.Value)))
+                .ToDictionary(pair => pair.Name, pair => pair.Value);
+        }
+
+        public static (Uri HostFragment, Dictionary<string, string> UriParams, Dictionary<string, string> QueryParams) Parse(this Uri target, string uriPattern)
+        {
+            var absUri = target.AbsoluteUri;
+            var pathAndQuery = target.PathAndQuery;
+
+            var hostFragment = absUri.Substring(0, absUri.IndexOf(pathAndQuery, StringComparison.Ordinal));
+
+            return (new Uri(hostFragment), ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern), ExtractQueryStringParams(pathAndQuery));
+        }
+
+        public static (Uri Path, Dictionary<string, string> QueryParams) Parse(this Uri target)
+        {
+            var absUri = target.AbsoluteUri;
+            var pathAndQuery = target.PathAndQuery;
+
+            var hostFragment = absUri.Substring(0, absUri.IndexOf(pathAndQuery, StringComparison.Ordinal));
+
+            return (new Uri(hostFragment), ExtractQueryStringParams(pathAndQuery));
         }
     }
 }
