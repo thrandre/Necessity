@@ -155,20 +155,22 @@ namespace Necessity
         {
             var absUri = target.AbsoluteUri;
             var pathAndQuery = target.PathAndQuery;
+            var queryIndex = pathAndQuery.IndexOf('?');
 
-            var hostFragment = absUri.Substring(0, absUri.IndexOf(pathAndQuery, StringComparison.Ordinal));
+            var absPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);
 
-            return (new Uri(hostFragment), ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern), ExtractQueryStringParams(pathAndQuery));
+            return (new Uri(absPath), ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern), ExtractQueryStringParams(pathAndQuery));
         }
 
         public static (Uri Path, Dictionary<string, string> QueryParams) Parse(this Uri target)
         {
             var absUri = target.AbsoluteUri;
             var pathAndQuery = target.PathAndQuery;
+            var queryIndex = pathAndQuery.IndexOf('?');
 
-            var hostFragment = absUri.Substring(0, absUri.IndexOf(pathAndQuery, StringComparison.Ordinal));
+            var absPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);
 
-            return (new Uri(hostFragment), ExtractQueryStringParams(pathAndQuery));
+            return (new Uri(absPath), ExtractQueryStringParams(pathAndQuery));
         }
     }
 }
