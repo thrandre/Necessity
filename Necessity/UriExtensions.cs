@@ -50,12 +50,12 @@ namespace Necessity
             return CreateUri(path, qsp);
         }
 
-        private static string EncodeUrlFragment(string fragment)
+        public static string EncodeUrlFragment(string fragment)
         {
             return WebUtility.UrlEncode(fragment)?.Replace("+", "%20");
         }
 
-        private static string DecodeUrlFragment(string fragment)
+        public static string DecodeUrlFragment(string fragment)
         {
             return WebUtility.UrlDecode(fragment);
         }
@@ -67,7 +67,7 @@ namespace Necessity
                        "&",
                        queryStringParameters
                            .Where(x => !string.IsNullOrEmpty(x.Value))
-                           .Select(x => $"{EncodeUrlFragment(x.Key)}={EncodeUrlFragment(x.Value)}")))
+                           .Select(x => $"{x.Key}={x.Value}")))
                        .Pipe(x => new Uri(x));
         }
 
@@ -110,7 +110,7 @@ namespace Necessity
 
                 if (c == '&' || i == pathAndQuery.Length)
                 {
-                    qs.Add(DecodeUrlFragment(lookbackBuffer.ToString()), DecodeUrlFragment(buffer.ToString()));
+                    qs.Add(lookbackBuffer.ToString(), buffer.ToString());
 
                     buffer.Clear();
                     lookbackBuffer.Clear();
@@ -148,7 +148,7 @@ namespace Necessity
                 .Select(paramPair => (
                     Name: paramPair.Value,
                     Value: extractedParams.GetOrDefault(paramPair.Value)))
-                .ToDictionary(pair => DecodeUrlFragment(pair.Name), pair => DecodeUrlFragment(pair.Value));
+                .ToDictionary(pair => pair.Name, pair => pair.Value);
         }
 
         public static (Uri HostFragment, Dictionary<string, string> UriParams, Dictionary<string, string> QueryParams) Parse(this Uri target, string uriPattern)
