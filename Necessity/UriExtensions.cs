@@ -172,7 +172,7 @@ namespace Necessity
         {
             var absUri = target.AbsoluteUri;
             var pathAndQuery = target.PathAndQuery;
-            var pathIndex = absUri.IndexOf(pathAndQuery);
+            var pathIndex = absUri.LastIndexOf(pathAndQuery);
             var queryIndex = absUri.IndexOf('?');
 
             var baseAndPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);

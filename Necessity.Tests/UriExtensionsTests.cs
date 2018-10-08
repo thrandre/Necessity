@@ -27,6 +27,14 @@ namespace Necessity.Tests
                 .AppendQueryStringParameters(new { foobar = 42 })
                 .ToString().Should().Be("https://consul.io/v1/kv/foo/bar?foobar=42");
         }
+
+        [TestMethod]
+        public void Should_handle_nested_querystrings()
+        {
+            new Uri("https://portal.dev.service.esmartapi.com")
+                .AppendQueryStringParameters(new { redirectUrl = "http://localhost:44301/landing/{{tenantKey}}/{{participantKey}}?redirectUrl=/" })
+                .ToString().Should().Be("https://portal.dev.service.esmartapi.com/?redirectUrl=http://localhost:44301/landing/{{tenantKey}}/{{participantKey}}?redirectUrl=/");
+        }
     }
 
     [TestClass]
