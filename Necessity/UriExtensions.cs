@@ -202,7 +202,7 @@ namespace Necessity
                 QueryParams = ExtractQueryStringParams(pathAndQuery),
                 UriParams = uriPattern != null
                     ? ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern)
-                    : null
+                    : new Dictionary<string, string>()
             };
         }
     }
