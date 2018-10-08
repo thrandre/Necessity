@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Necessity.Http
 {
@@ -21,7 +20,7 @@ namespace Necessity.Http
 
                     if (onHttpError == null)
                     {
-                        return default(T);
+                        return default;
                     }
 
                     using (var sw = new StreamReader(stream))
@@ -41,22 +40,21 @@ namespace Necessity.Http
                     }
                 }
 
-                return default(T);
+                return default;
             };
         }
 
-        public static Func<HttpResponseMessage, Stream, Task<T>> GetJsonDeserializer<T>(JsonSerializer serializer)
+        public static Func<HttpResponseMessage, Stream, Task<T>> GetJsonDeserializer<T>(Func<StreamReader, T> deserializerFunc)
         {
             return (message, stream) =>
-                JsonDeserialize<T>(message, stream, serializer);
+                JsonDeserialize<T>(message, stream, deserializerFunc);
         }
 
-        public static Task<T> JsonDeserialize<T>(HttpResponseMessage response, Stream stream, JsonSerializer serializer = null)
+        public static Task<T> JsonDeserialize<T>(HttpResponseMessage response, Stream stream, Func<StreamReader, T> deserializerFunc)
         {
             using (var textReader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(textReader))
             {
-                return Task.FromResult((serializer ?? new JsonSerializer()).Deserialize<T>(jsonReader));
+                return Task.FromResult(deserializerFunc(textReader));
             }
         }
     }

@@ -7,6 +7,14 @@ using System.Text;
 
 namespace Necessity
 {
+    public class UriParseResult
+    {
+        public Uri Base { get; set; }
+        public string Path { get; set; }
+        public Dictionary<string, string> UriParams { get; set; }
+        public Dictionary<string, string> QueryParams { get; set; }
+    }
+
     public static class UriExtensions
     {
         public static Uri AppendPath(this Uri baseUri, string appendablePath)
@@ -40,14 +48,14 @@ namespace Necessity
 
         private static Uri InternalAppendQueryStringParameters(this Uri uri, Dictionary<string, string> queryStringParameters)
         {
-            var (path, qsp) = uri.Parse();
+            var res = uri.Parse();
 
             foreach (var pkvp in queryStringParameters)
             {
-                qsp.AddOrUpdate(pkvp.Key, (_, __) => pkvp.Value);
+                res.QueryParams.AddOrUpdate(pkvp.Key, (_, __) => pkvp.Value);
             }
 
-            return CreateUri(path, qsp);
+            return CreateUri(res.Base.AppendPath(res.Path).ToString(), res.QueryParams);
         }
 
         public static string EncodeUrlFragment(string fragment)
@@ -60,9 +68,9 @@ namespace Necessity
             return WebUtility.UrlDecode(fragment);
         }
 
-        public static Uri CreateUri(Uri path, IDictionary<string, string> queryStringParameters)
+        public static Uri CreateUri(string path, IDictionary<string, string> queryStringParameters)
         {
-            return (path.AbsoluteUri + "?" +
+            return (path + "?" +
                    string.Join(
                        "&",
                        queryStringParameters
@@ -85,7 +93,7 @@ namespace Necessity
                     ? pathAndQuery[i]
                     : char.MinValue;
 
-                if (c == '?' || !qsSepSeen && i == pathAndQuery.Length)
+                if ((c == '?' && !qsSepSeen) || (!qsSepSeen && i == pathAndQuery.Length))
                 {
                     buffer.Clear();
                     qsSepSeen = true;
@@ -108,9 +116,18 @@ namespace Necessity
                     continue;
                 }
 
-                if (c == '&' || i == pathAndQuery.Length)
+                if (c == '&' || (c == '?' && qsSepSeen) || i == pathAndQuery.Length)
                 {
-                    qs.Add(lookbackBuffer.ToString(), buffer.ToString());
+                    var key = lookbackBuffer.ToString();
+                    var it = 0;
+
+                    while (qs.ContainsKey(key))
+                    {
+                        it++;
+                        key = $"{key}_{it}";
+                    }
+
+                    qs.Add(key, buffer.ToString());
 
                     buffer.Clear();
                     lookbackBuffer.Clear();
@@ -151,26 +168,42 @@ namespace Necessity
                 .ToDictionary(pair => pair.Name, pair => pair.Value);
         }
 
-        public static (Uri HostFragment, Dictionary<string, string> UriParams, Dictionary<string, string> QueryParams) Parse(this Uri target, string uriPattern)
+        private static (Uri Base, string Path, string PathAndQuery) GetBaseAndPath(this Uri target)
         {
             var absUri = target.AbsoluteUri;
             var pathAndQuery = target.PathAndQuery;
-            var queryIndex = pathAndQuery.IndexOf('?');
+            var pathIndex = absUri.IndexOf(pathAndQuery);
+            var queryIndex = absUri.IndexOf('?');
 
-            var absPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);
+            var baseAndPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);
+            var @base = new Uri(
+                baseAndPath.Substring(
+                    0,
+                    pathIndex > -1
+                        ? pathIndex
+                        : baseAndPath.Length));
 
-            return (new Uri(absPath), ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern), ExtractQueryStringParams(pathAndQuery));
+            var path = absUri.Substring(
+                pathIndex,
+                (queryIndex - pathIndex)
+                    .Pipe(x => x > 0 ? x : pathAndQuery.Length));
+
+            return (@base, path, pathAndQuery);
         }
 
-        public static (Uri Path, Dictionary<string, string> QueryParams) Parse(this Uri target)
+        public static UriParseResult Parse(this Uri target, string uriPattern = null)
         {
-            var absUri = target.AbsoluteUri;
-            var pathAndQuery = target.PathAndQuery;
-            var queryIndex = pathAndQuery.IndexOf('?');
+            var (@base, path, pathAndQuery) = GetBaseAndPath(target);
 
-            var absPath = absUri.Substring(0, queryIndex > -1 ? queryIndex : absUri.Length);
-
-            return (new Uri(absPath), ExtractQueryStringParams(pathAndQuery));
+            return new UriParseResult
+            {
+                Base = @base,
+                Path = path,
+                QueryParams = ExtractQueryStringParams(pathAndQuery),
+                UriParams = uriPattern != null
+                    ? ExtractUriParams(pathAndQuery.Split('?').First(), uriPattern)
+                    : null
+            };
         }
     }
 }

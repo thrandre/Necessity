@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Necessity.Http
             if (!result.IsSuccessStatusCode)
             {
                 await onError(result);
-                return default(TResult);
+                return default;
             }
 
             using (result)

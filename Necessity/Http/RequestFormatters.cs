@@ -2,15 +2,14 @@
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
 
 namespace Necessity.Http
 {
     public static class RequestFormatters
     {
-        public static StreamContent GetJsonBody<T>(T obj, JsonSerializer serializer)
+        public static StreamContent GetJsonBody<T>(T obj, Action<StreamWriter, T> serializerFunc)
         {
-            return GetStreamContent(sw => serializer.Serialize(sw, obj), "application/json");
+            return GetStreamContent(sw => serializerFunc(sw, obj), "application/json");
         }
 
         public static StreamContent GetStreamContent(Action<StreamWriter> writeContentAct, string contentType)

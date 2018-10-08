@@ -1,11 +1,15 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using AgileObjects.NetStandardPolyfills;
 
 namespace Necessity
 {
+    public class DescriptionAttribute : Attribute
+    {
+        public string Description { get; set; }
+    }
+
     public static class EnumExtensions
     {
         public static string Description(this Enum @enum)

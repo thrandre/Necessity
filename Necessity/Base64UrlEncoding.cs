@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace Necessity
 {
@@ -37,20 +36,19 @@ namespace Necessity
 
     public static class JsonB64UrlEncoding
     {
-        public static string Pack<T>(T model)
+        public static string Pack<T>(T model, Func<T, string> serializerFunc)
         {
-            return JsonConvert
-                .SerializeObject(model)
+            return serializerFunc(model)
                 .Pipe(Encoding.UTF8.GetBytes)
                 .Pipe(Base64UrlEncoding.Encode);
         }
 
-        public static T Unpack<T>(string model)
+        public static T Unpack<T>(string model, Func<string, T> deserializerFunc)
         {
             return model
                 .Pipe(Base64UrlEncoding.Decode)
                 .Pipe(b => Encoding.UTF8.GetString(b, 0, b.Length))
-                .Pipe(JsonConvert.DeserializeObject<T>);
+                .Pipe(deserializerFunc);
         }
     }
 }
