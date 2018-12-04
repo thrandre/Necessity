@@ -43,10 +43,10 @@ namespace Necessity
                 .Select(x => (Key: x.Name, Value: x.GetValue(obj)))
                 .ToDictionary(x => x.Key, x => x.Value?.ToString());
 
-            return InternalAppendQueryStringParameters(uri, props);
+            return AppendQueryStringParameters(uri, props);
         }
 
-        private static Uri InternalAppendQueryStringParameters(this Uri uri, Dictionary<string, string> queryStringParameters)
+        public static Uri AppendQueryStringParameters(this Uri uri, Dictionary<string, string> queryStringParameters)
         {
             var res = uri.Parse();
 
