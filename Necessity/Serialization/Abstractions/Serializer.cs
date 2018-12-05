@@ -2,7 +2,7 @@ using System;
 
 namespace Necessity.Serialization.Abstractions
 {
-    public class Serializer
+    public class Serializer : ISerializer
     {
         public Serializer(Func<object, string> serializeFunc, Func<string, Type, object> deserializeFunc)
         {
