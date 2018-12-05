@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Necessity
 {
@@ -6,7 +7,7 @@ namespace Necessity
     {
         public static Func<TOut> Fn<TOut>(Delegate test)
         {
-            return (Func <TOut>)test;
+            return (Func<TOut>)test;
         }
 
         public static Func<TIn, TOut> Fn<TIn, TOut>(Func<TIn, TOut> fn)
@@ -43,6 +44,18 @@ namespace Necessity
         {
             act(@in);
             return @in;
+        }
+
+        public static async Task<TOut> Pipe<TIn, TOut>(this Task<TIn> @in, Func<TIn, TOut> func)
+        {
+            return func(await @in);
+        }
+
+        public static async Task<TIn> Pipe<TIn>(this Task<TIn> @in, Action<TIn> act)
+        {
+            var result = await @in;
+            act(result);
+            return result;
         }
 
         public static TIn PipeIf<TIn>(this TIn target, Func<TIn, bool> predicate, Action<TIn> fn)
