@@ -72,6 +72,15 @@ namespace Necessity
                 : target;
         }
 
+        public static Action<TIn> Compose<TIn>(this Action<TIn> act1, Action<TIn> act2)
+        {
+            return @in =>
+            {
+                act2?.Invoke(@in);
+                act1?.Invoke(@in);
+            };
+        }
+
         public static Func<TIn, TOut2> Compose<TIn, TOut1, TOut2>(this Func<TIn, TOut1> fn1, Func<TOut1, TOut2> fn2)
         {
             return @in =>

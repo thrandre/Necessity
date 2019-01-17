@@ -42,5 +42,39 @@ namespace Necessity
 
             target.Add(key, updateFn(key, default(TVal)));
         }
+
+        public static Dictionary<TKey, TVal> ToNonCollidingDictionary<T, TKey, TVal>(this IEnumerable<T> target, Func<T, TKey> keySelector, Func<T, TVal> valueSelector, Func<TVal, TVal, TVal> collisionResolver)
+        {
+            var dict = new Dictionary<TKey, TVal>();
+
+            foreach (var item in target)
+            {
+                dict.AddOrUpdate(
+                    keySelector(item),
+                    (key, existingItem) =>
+                        existingItem == null
+                            ? valueSelector(item)
+                            : collisionResolver(existingItem, valueSelector(item)));
+            }
+
+            return dict;
+        }
+
+        public static Dictionary<TKey, TVal> ToNonCollidingDictionary<T, TKey, TVal>(this IEnumerable<T> target, Func<T, TKey> keySelector, Func<T, TVal> valueSelector, ResolveOption resolveOption)
+        {
+            return target.ToNonCollidingDictionary(
+                keySelector,
+                valueSelector,
+                (e, n) =>
+                    resolveOption == ResolveOption.KeepFirst
+                        ? e
+                        : n);
+        }
+    }
+
+    public enum ResolveOption
+    {
+        KeepFirst,
+        KeepLast
     }
 }
