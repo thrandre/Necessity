@@ -7,7 +7,7 @@ namespace Necessity.Rest
 {
     public interface IRestClient
     {
-        Task<T> Request<T>(Action<HttpRequestMessage> configureRequest, Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess);
+        Task<T> Request<T>(string path, Action<HttpRequestMessage> configureRequest, Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess);
         Task<T> Get<T>(string path, Action<HttpRequestMessage> configureRequest = null);
         Task Post(string path, Action<HttpRequestMessage> configureRequest = null);
         Task Put(string path, Action<HttpRequestMessage> configureRequest = null);

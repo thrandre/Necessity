@@ -24,6 +24,7 @@ namespace Necessity.Rest
         public Action<HttpRequestMessage> CommonConfigure { get; set; }
 
         public Task<T> Request<T>(
+            string path,
             Action<HttpRequestMessage> configureRequest,
             Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess)
         {
@@ -31,6 +32,7 @@ namespace Necessity.Rest
                 .RequestAsync(
                     configureRequest
                         .Compose(CommonConfigure)
+                        .Compose(r => r.Path(path))
                         .Compose(r =>
                         {
                             var bodyContent = r.Properties.GetOrDefault(BodyContentKey);
@@ -54,40 +56,40 @@ namespace Necessity.Rest
         public Task<T> Get<T>(string path, Action<HttpRequestMessage> configureRequest = null)
         {
             return Request(
+                path,
                 configureRequest
                     .Compose(r => r
-                        .Method(HttpMethod.Get)
-                        .Path(path)),
+                        .Method(HttpMethod.Get)),
                 async (res, serializer) => serializer.Deserialize<T>(await res.Content.ReadAsStringAsync()));
         }
 
         public Task Post(string path, Action<HttpRequestMessage> configureRequest = null)
         {
             return Request(
+                path,
                 configureRequest
                     .Compose(r => r
-                        .Method(HttpMethod.Post)
-                        .Path(path)),
+                        .Method(HttpMethod.Post)),
                 (res, _) => Task.FromResult(true));
         }
 
         public Task Put(string path, Action<HttpRequestMessage> configureRequest = null)
         {
             return Request(
+                path,
                 configureRequest
                     .Compose(r => r
-                        .Method(HttpMethod.Put)
-                        .Path(path)),
+                        .Method(HttpMethod.Put)),
                 (res, _) => Task.FromResult(true));
         }
 
         public Task Delete(string path, Action<HttpRequestMessage> configureRequest = null)
         {
             return Request(
+                path,
                 configureRequest
                     .Compose(r => r
-                        .Method(HttpMethod.Delete)
-                        .Path(path)),
+                        .Method(HttpMethod.Delete)),
                 (res, _) => Task.FromResult(true));
         }
     }
