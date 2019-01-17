@@ -25,7 +25,7 @@ namespace Necessity.Rest
 
         public Task<T> Request<T>(
             Action<HttpRequestMessage> configureRequest,
-            Func<HttpResponseMessage, Task<T>> onSuccess)
+            Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess)
         {
             return GetHttpClient()
                 .RequestAsync(
@@ -47,7 +47,7 @@ namespace Necessity.Rest
 
                             r.Properties.Remove(BodyContentKey);
                         }),
-                    async res => await onSuccess(res),
+                    async res => await onSuccess(res, Serializer),
                     async res => throw new RestClientException(res.StatusCode, await res.Content.ReadAsStringAsync()));
         }
 
@@ -58,7 +58,7 @@ namespace Necessity.Rest
                     .Compose(r => r
                         .Method(HttpMethod.Get)
                         .Path(path)),
-                async res => Serializer.Deserialize<T>(await res.Content.ReadAsStringAsync()));
+                async (res, serializer) => serializer.Deserialize<T>(await res.Content.ReadAsStringAsync()));
         }
 
         public Task Post(string path, Action<HttpRequestMessage> configureRequest = null)
@@ -68,7 +68,7 @@ namespace Necessity.Rest
                     .Compose(r => r
                         .Method(HttpMethod.Post)
                         .Path(path)),
-                res => Task.FromResult(true));
+                (res, _) => Task.FromResult(true));
         }
 
         public Task Put(string path, Action<HttpRequestMessage> configureRequest = null)
@@ -78,7 +78,7 @@ namespace Necessity.Rest
                     .Compose(r => r
                         .Method(HttpMethod.Put)
                         .Path(path)),
-                res => Task.FromResult(true));
+                (res, _) => Task.FromResult(true));
         }
 
         public Task Delete(string path, Action<HttpRequestMessage> configureRequest = null)
@@ -88,7 +88,7 @@ namespace Necessity.Rest
                     .Compose(r => r
                         .Method(HttpMethod.Delete)
                         .Path(path)),
-                res => Task.FromResult(true));
+                (res, _) => Task.FromResult(true));
         }
     }
 }
