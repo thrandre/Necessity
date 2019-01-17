@@ -9,7 +9,6 @@
     <Version>11.0.0-alpha.1</Version>
     <Authors>Necessity</Authors>
     <LangVersion>7.1</LangVersion>
-    <IsTestProject>True</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
