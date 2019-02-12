@@ -4,5 +4,6 @@ namespace Necessity.Serialization.Abstractions
     {
         string Serialize<T>(object @object);
         T Deserialize<T>(string serializedObject);
+        T DeserializeAnonymousObject<T>(string serializedObject, T anonymousObjectPrototype);
     }
 }

@@ -53,14 +53,18 @@ namespace Necessity.Rest
                     async res => throw new RestClientException(res.StatusCode, await res.Content.ReadAsStringAsync()));
         }
 
-        public Task<T> Get<T>(string path, Action<HttpRequestMessage> configureRequest = null)
+        public Task<T> Get<T>(string path, Action<HttpRequestMessage> configureRequest = null, T anonymousObjectPrototype = default)
         {
             return Request(
                 path,
                 configureRequest
                     .Compose(r => r
                         .Method(HttpMethod.Get)),
-                async (res, serializer) => serializer.Deserialize<T>(await res.Content.ReadAsStringAsync()));
+                (res, serializer) => res.Content
+                    .ReadAsStringAsync()
+                    .Pipe(x => anonymousObjectPrototype == default
+                        ? Serializer.Deserialize<T>(x)
+                        : Serializer.DeserializeAnonymousObject<T>(x, anonymousObjectPrototype)));
         }
 
         public Task Post(string path, Action<HttpRequestMessage> configureRequest = null)
