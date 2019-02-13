@@ -62,7 +62,7 @@ namespace Necessity.Rest
                         .Method(HttpMethod.Get)),
                 (res, serializer) => res.Content
                     .ReadAsStringAsync()
-                    .Pipe(x => anonymousObjectPrototype == default
+                    .Pipe(x => anonymousObjectPrototype == null
                         ? Serializer.Deserialize<T>(x)
                         : Serializer.DeserializeAnonymousObject<T>(x, anonymousObjectPrototype)));
         }
