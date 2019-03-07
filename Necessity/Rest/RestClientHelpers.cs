@@ -1,5 +1,7 @@
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace Necessity.Rest
 {
@@ -42,6 +44,18 @@ namespace Necessity.Rest
             return req.Pipe(r =>
             {
                 r.Properties.Add("X-Body-Content", content);
+            });
+        }
+
+        public static HttpRequestMessage BasicAuth(this HttpRequestMessage req, string username, string password)
+        {
+            return req.Pipe(r => 
+            {
+                r.Headers.Authorization = new AuthenticationHeaderValue(
+                    "Basic",
+                    Convert.ToBase64String(
+                        Encoding.GetEncoding("ASCII")
+                            .GetBytes($"{username}:{password}")));
             });
         }
     }
