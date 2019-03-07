@@ -72,6 +72,13 @@ namespace Necessity
                 : target;
         }
 
+        public static TOut Fork<TIn, TOut>(this TIn target, Func<TIn, bool> predicate, Func<TIn, TOut> @if, Func<TIn, TOut> @else)
+        {
+            return predicate(target)
+                ? target.Pipe(@if)
+                : target.Pipe(@else);
+        }
+        
         public static Action<TIn> Compose<TIn>(this Action<TIn> act1, Action<TIn> act2)
         {
             return @in =>

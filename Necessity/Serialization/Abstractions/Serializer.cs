@@ -2,9 +2,9 @@ using System;
 
 namespace Necessity.Serialization.Abstractions
 {
-    public class Serializer : ISerializer
+    public class FuncSerializer : ISerializer
     {
-        public Serializer(Func<object, string> serializeFunc, Func<string, Type, object> deserializeFunc, Func<string, object, object> deserializeAnonymousFunc = null)
+        public FuncSerializer(Func<object, string> serializeFunc, Func<string, Type, object> deserializeFunc, Func<string, object, object> deserializeAnonymousFunc = null)
         {
             SerializeFunc = serializeFunc;
             DeserializeFunc = deserializeFunc;
