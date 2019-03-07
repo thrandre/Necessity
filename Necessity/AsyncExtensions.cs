@@ -5,9 +5,9 @@ namespace Necessity
 {
     public static class AsyncExtensions
     {
-        public static Task<ICollection<T>> MaterializeAsync<T>(this Task<IEnumerable<T>> target)
+        public static async Task<ICollection<T>> MaterializeAsync<T>(this Task<IEnumerable<T>> target)
         {
-            return target.ContinueWith(x => x.Result.Materialize(), TaskContinuationOptions.OnlyOnRanToCompletion);
+            return (await target).Materialize();
         }
     }
 }
