@@ -3,4 +3,4 @@ mono: none
 dotnet: 2.1.103
 script:
  - dotnet build
- - dotnet nuget push **/*.nupkg -k oy2jxffz2ontgkg2qc3qgqdazqxh2j5ejjiu4al5gzz4c4 -s https://api.nuget.org/v3/index.json
+ - dotnet nuget push **/*.nupkg -k $API_KEY -s https://api.nuget.org/v3/index.json
