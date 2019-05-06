@@ -37,8 +37,8 @@ public static class UriInfoExtensions
             RelativePath = !string.IsNullOrWhiteSpace(i2.RelativePath.TrimStart('/'))
                 ? UriUtils.JoinPaths(i1.RelativePath, i2.RelativePath)
                 : i1.RelativePath,
-            QueryParams = i1.QueryParams.Concat(i2.QueryParams).ToNonCollidingDictionary(x => x.Key, x => x.Value, ResolveOption.KeepFirst),
-            UriParams = i1.UriParams.Concat(i2.UriParams).ToNonCollidingDictionary(x => x.Key, x => x.Value, ResolveOption.KeepFirst),
+            QueryParams = i1.QueryParams.Concat(i2.QueryParams).ToNonCollidingDictionary(x => x.Key, x => x.Value, ResolveOption.Keep),
+            UriParams = i1.UriParams.Concat(i2.UriParams).ToNonCollidingDictionary(x => x.Key, x => x.Value, ResolveOption.Keep),
             Fragment = i2.Fragment ?? i1.Fragment,
             IsAbsolute = i1.IsAbsolute
         };
@@ -136,7 +136,7 @@ public static class UriExtensions
             .TrimStart('?')
             .Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Split('='))
-            .ToNonCollidingDictionary(kv => kv[0], kv => kv[1], ResolveOption.KeepFirst);
+            .ToNonCollidingDictionary(kv => kv[0], kv => kv[1], ResolveOption.Keep);
     }
 
     private static Dictionary<string, string> ExtractUriParams(string path, string uriPattern)
@@ -196,7 +196,7 @@ public static class UriExtensions
                     .ToNonCollidingDictionary(
                         y => y.Key,
                         y => y.Value,
-                        ResolveOption.KeepFirst);
+                        ResolveOption.Keep);
 
                 return new Uri(x.ToString());
             });

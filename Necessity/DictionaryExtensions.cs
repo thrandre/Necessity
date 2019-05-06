@@ -66,15 +66,23 @@ namespace Necessity
                 keySelector,
                 valueSelector,
                 (e, n) =>
-                    resolveOption == ResolveOption.KeepFirst
+                    resolveOption == ResolveOption.Keep
                         ? e
                         : n);
+        }
+
+        public static Dictionary<TKey, TVal> Merge<TKey, TVal>(this IDictionary<TKey, TVal> left, IDictionary<TKey, TVal> right, ResolveOption resolveOption = ResolveOption.Replace)
+        {
+            return left
+                .ToList()
+                .Concat(right.ToList())
+                .ToNonCollidingDictionary(i => i.Key, i => i.Value, resolveOption);
         }
     }
 
     public enum ResolveOption
     {
-        KeepFirst,
-        KeepLast
+        Keep,
+        Replace
     }
 }
