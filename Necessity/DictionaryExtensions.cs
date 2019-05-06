@@ -45,7 +45,7 @@ namespace Necessity
 
         public static Dictionary<TKey, TVal> ToNonCollidingDictionary<T, TKey, TVal>(this IEnumerable<T> target, Func<T, TKey> keySelector, Func<T, TVal> valueSelector, Func<TVal, TVal, TVal> collisionResolver, IEqualityComparer<TKey> comparer = null)
         {
-            var dict = new Dictionary<TKey, TVal>(comparer);
+            var dict = new Dictionary<TKey, TVal>(comparer ?? EqualityComparer<TKey>.Default);
 
             foreach (var item in target)
             {
