@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ namespace Necessity.Rest
                             }
 
                             r.Content = new StringContent(
-                                Serializer.Serialize<T>(bodyContent),
+                                Serializer.Serialize(bodyContent),
                                 Encoding.UTF8,
                                 "application/json");
 

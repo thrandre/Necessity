@@ -15,7 +15,7 @@ namespace Necessity.Serialization.Abstractions
         private Func<string, Type, object> DeserializeFunc { get; }
         public Func<string, object, object> DeserializeAnonymousFunc { get; }
 
-        public string Serialize<T>(object @object)
+        public string Serialize(object @object)
         {
             return SerializeFunc(@object);
         }
