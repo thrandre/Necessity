@@ -5,6 +5,6 @@ namespace Necessity.Rest
 {
     public interface IRestClientFactory
     {
-        RestClient Create(Action<HttpRequestMessage> commonConfigure = null);
+        IRestClient Create(Action<HttpRequestMessage> commonConfigure = null);
     }
 }

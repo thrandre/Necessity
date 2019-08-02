@@ -15,7 +15,7 @@ namespace Necessity.Rest
         public Func<HttpClient> GetHttpClient { get; }
         public ISerializer Serializer { get; }
 
-        public RestClient Create(Action<HttpRequestMessage> commonConfigure = null)
+        public IRestClient Create(Action<HttpRequestMessage> commonConfigure = null)
         {
             return new RestClient(GetHttpClient, Serializer)
             {

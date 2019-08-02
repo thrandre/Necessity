@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Necessity.Http;
 using Necessity.Serialization.Abstractions;
@@ -9,15 +8,15 @@ namespace Necessity.Rest
 {
     public class RestClient : IRestClient
     {
-        private const string BodyContentKey = "X-Body-Content";
+        internal const string SerializerReferenceKey = "X-RestClient-Serializer";
 
-        public RestClient(Func<HttpClient> getHttpClient, ISerializer serializer)
+        public RestClient(Func<HttpClient> httpClientFactory, ISerializer serializer)
         {
-            GetHttpClient = getHttpClient;
+            HttpClientFactory = httpClientFactory;
             Serializer = serializer;
         }
 
-        private Func<HttpClient> GetHttpClient { get; }
+        private Func<HttpClient> HttpClientFactory { get; }
         private ISerializer Serializer { get; }
 
         public Action<HttpRequestMessage> CommonConfigure { get; set; }
@@ -27,29 +26,40 @@ namespace Necessity.Rest
             Action<HttpRequestMessage> configureRequest,
             Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess)
         {
-            return GetHttpClient()
+            return HttpClientFactory()
                 .RequestAsync(
                     configureRequest
+                        .Compose(r =>
+                        {
+                            r.Properties.Add(SerializerReferenceKey, Serializer);
+                        })
                         .Compose(CommonConfigure)
                         .Compose(r => r.Path(path))
                         .Compose(r =>
                         {
-                            var bodyContent = r.Properties.GetOrDefault(BodyContentKey);
-
-                            if (bodyContent == null)
-                            {
-                                return;
-                            }
-
-                            r.Content = new StringContent(
-                                Serializer.Serialize(bodyContent),
-                                Encoding.UTF8,
-                                "application/json");
-
-                            r.Properties.Remove(BodyContentKey);
+                            r.Properties.Remove(SerializerReferenceKey);
                         }),
                     async res => await onSuccess(res, Serializer),
                     async res => throw new RestClientException(res.StatusCode, await res.Content.ReadAsStringAsync()));
+        }
+
+        private async Task<T> GetResult<T>(HttpContent content, ISerializer serializer, T anonymousObjectPrototype = default)
+        {
+            if (anonymousObjectPrototype != null)
+            {
+                return serializer.DeserializeAnonymousObject<T>(
+                    await content.ReadAsStringAsync(),
+                    anonymousObjectPrototype);
+            }
+
+            if (serializer.CanDeserializeFromStream)
+            {
+                return serializer.DeserializeFromStream<T>(
+                    await content.ReadAsStreamAsync());
+            }
+
+            return serializer.Deserialize<T>(
+                await content.ReadAsStringAsync());
         }
 
         public Task<T> Get<T>(string path, Action<HttpRequestMessage> configureRequest = null, T anonymousObjectPrototype = default)
@@ -59,11 +69,7 @@ namespace Necessity.Rest
                 configureRequest
                     .Compose(r => r
                         .Method(HttpMethod.Get)),
-                (res, serializer) => res.Content
-                    .ReadAsStringAsync()
-                    .Pipe(x => anonymousObjectPrototype == null
-                        ? Serializer.Deserialize<T>(x)
-                        : Serializer.DeserializeAnonymousObject<T>(x, anonymousObjectPrototype)));
+                (res, serializer) => GetResult<T>(res.Content, serializer, anonymousObjectPrototype));
         }
 
         public Task Post(string path, Action<HttpRequestMessage> configureRequest = null)
