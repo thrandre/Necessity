@@ -10,28 +10,42 @@ namespace Necessity.Serialization.Abstractions
             Func<string, Type, object> deserializeFunc,
             Func<string, object, object> deserializeAnonymousFunc = null,
             Action<object, Stream> serializeToStreamFunc = null,
-            Func<Stream, object> deserializeFromStreamFunc = null)
+            Func<Stream, object> deserializeFromStreamFunc = null,
+            Func<Stream, object, object> deserializeAnonymousFromStreamFunc = null)
         {
             SerializeFunc = serializeFunc;
             DeserializeFunc = deserializeFunc;
             DeserializeAnonymousFunc = deserializeAnonymousFunc;
             SerializeToStreamFunc = serializeToStreamFunc;
             DeserializeFromStreamFunc = deserializeFromStreamFunc;
+            DeserializeAnonymousFromStreamFunc = deserializeAnonymousFromStreamFunc;
         }
 
         public bool CanDeserializeAnonymousObject => DeserializeAnonymousFunc != null;
         public bool CanSerializeToStream => SerializeToStreamFunc != null;
         public bool CanDeserializeFromStream => DeserializeFromStreamFunc != null;
+        public bool CanDeserializeAnonymousObjectFromStream => DeserializeAnonymousFromStreamFunc != null;
 
         private Func<object, string> SerializeFunc { get; }
         private Func<string, Type, object> DeserializeFunc { get; }
         private Func<string, object, object> DeserializeAnonymousFunc { get; }
         private Action<object, Stream> SerializeToStreamFunc { get; }
         private Func<Stream, object> DeserializeFromStreamFunc { get; }
+        private Func<Stream, object, object> DeserializeAnonymousFromStreamFunc { get; }
 
         public string Serialize(object @object)
         {
             return SerializeFunc(@object);
+        }
+
+        public void SerializeToStream(object @object, Stream stream)
+        {
+            if (!CanSerializeToStream)
+            {
+                throw new InvalidOperationException("Unsupported");
+            }
+
+            SerializeToStreamFunc(@object, stream);
         }
 
         public T Deserialize<T>(string serializedObject)
@@ -59,14 +73,14 @@ namespace Necessity.Serialization.Abstractions
             return (T)DeserializeFromStreamFunc(stream);
         }
 
-        public void SerializeToStream(object @object, Stream stream)
+        public T DeserializeAnonymousObjectFromStream<T>(Stream stream, T objectPrototype)
         {
-            if (!CanSerializeToStream)
+            if (!CanDeserializeAnonymousObjectFromStream)
             {
                 throw new InvalidOperationException("Unsupported");
             }
 
-            SerializeToStreamFunc(@object, stream);
+            return (T)DeserializeAnonymousFromStreamFunc(@stream, objectPrototype);
         }
     }
 }
