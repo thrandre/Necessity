@@ -10,30 +10,27 @@ namespace Necessity.Rest
     {
         internal const string SerializerReferenceKey = "X-RestClient-Serializer";
 
-        public RestClient(Func<HttpClient> httpClientFactory, ISerializer serializer)
+        public RestClient(HttpClient client, ISerializer serializer)
         {
-            HttpClientFactory = httpClientFactory;
+            Client = client;
             Serializer = serializer;
         }
 
-        private Func<HttpClient> HttpClientFactory { get; }
+        private HttpClient Client { get; }
         private ISerializer Serializer { get; }
-
-        public Action<HttpRequestMessage> CommonConfigure { get; set; }
 
         public Task<T> Request<T>(
             string path,
             Action<HttpRequestMessage> configureRequest,
             Func<HttpResponseMessage, ISerializer, Task<T>> onSuccess)
         {
-            return HttpClientFactory()
+            return Client
                 .RequestAsync(
                     configureRequest
                         .Compose(r =>
                         {
                             r.Properties.Add(SerializerReferenceKey, Serializer);
                         })
-                        .Compose(CommonConfigure)
                         .Compose(r => r.Path(path))
                         .Compose(r =>
                         {
@@ -45,8 +42,20 @@ namespace Necessity.Rest
 
         private async Task<T> GetResult<T>(HttpContent content, ISerializer serializer, T anonymousObjectPrototype = default)
         {
+            if (typeof(T) == typeof(string))
+            {
+                return (T)(object)(await content.ReadAsStringAsync());
+            }
+
             if (anonymousObjectPrototype != null)
             {
+                if (serializer.CanDeserializeAnonymousObjectFromStream)
+                {
+                    return serializer.DeserializeAnonymousObjectFromStream<T>(
+                        await content.ReadAsStreamAsync(),
+                        anonymousObjectPrototype);
+                }
+
                 return serializer.DeserializeAnonymousObject<T>(
                     await content.ReadAsStringAsync(),
                     anonymousObjectPrototype);

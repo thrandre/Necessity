@@ -9,14 +9,6 @@ namespace Necessity.Rest
 {
     public static class RestClientHelpers
     {
-        public static HttpRequestMessage BaseUri(this HttpRequestMessage req, string baseUri)
-        {
-            return req.Pipe(r =>
-            {
-                r.RequestUri = new Uri(baseUri);
-            });
-        }
-
         public static HttpRequestMessage Method(this HttpRequestMessage req, HttpMethod httpMethod)
         {
             return req.Pipe(r =>
@@ -29,7 +21,7 @@ namespace Necessity.Rest
         {
             return req.Pipe(r =>
             {
-                r.RequestUri = r.RequestUri.Append(path);
+                r.RequestUri = new Uri(path, UriKind.Relative);
             });
         }
 
@@ -82,11 +74,19 @@ namespace Necessity.Rest
             });
         }
 
-        public static HttpRequestMessage BasicAuth(this HttpRequestMessage req, string username, string password)
+        public static HttpClient BaseAddress(this HttpClient client, string baseAddress)
         {
-            return req.Pipe(r =>
+            return client.Pipe(c =>
             {
-                r.Headers.Authorization = new AuthenticationHeaderValue(
+                c.BaseAddress = new Uri(baseAddress);
+            });
+        }
+
+        public static HttpClient BasicAuth(this HttpClient client, string username, string password)
+        {
+            return client.Pipe(c =>
+            {
+                c.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                     "Basic",
                     Convert.ToBase64String(
                         Encoding.GetEncoding("ASCII")

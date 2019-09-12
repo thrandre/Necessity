@@ -167,7 +167,7 @@ public static class UriExtensions
 
         var result = uriInfo.Merge(appendableUriInfo);
 
-        return new Uri(result.ToString());
+        return new Uri(result.ToString(), uri.IsAbsoluteUri ? UriKind.Absolute : UriKind.Relative);
     }
 
     public static Uri AppendPath(this Uri uri, string appendable)
@@ -187,7 +187,7 @@ public static class UriExtensions
 
     public static Uri AppendQueryParameters(this Uri uri, IDictionary<string, string> queryParameters)
     {
-        return Parse(uri.AbsoluteUri)
+        return Parse(uri.ToString())
             .Pipe(x =>
             {
                 x.QueryParams = x
@@ -198,7 +198,7 @@ public static class UriExtensions
                         y => y.Value,
                         ResolveOption.Keep);
 
-                return new Uri(x.ToString());
+                return new Uri(x.ToString(), uri.IsAbsoluteUri ? UriKind.Absolute : UriKind.Relative);
             });
     }
 
@@ -221,6 +221,6 @@ public static class UriExtensions
 
     public static UriInfo Parse(this Uri uri, string pattern = null)
     {
-        return Parse(uri.AbsoluteUri, pattern);
+        return Parse(uri.ToString(), pattern);
     }
 }
