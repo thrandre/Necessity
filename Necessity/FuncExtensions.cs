@@ -78,13 +78,13 @@ namespace Necessity
                 ? target.Pipe(@if)
                 : target.Pipe(@else);
         }
-        
+
         public static Action<TIn> Compose<TIn>(this Action<TIn> act1, Action<TIn> act2)
         {
             return @in =>
             {
-                act2?.Invoke(@in);
                 act1?.Invoke(@in);
+                act2?.Invoke(@in);
             };
         }
 
