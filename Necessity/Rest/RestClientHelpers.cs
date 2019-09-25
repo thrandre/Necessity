@@ -21,6 +21,12 @@ namespace Necessity.Rest
         {
             return req.Pipe(r =>
             {
+                if (r.RequestUri != null && r.RequestUri.IsAbsoluteUri)
+                {
+                    r.RequestUri = r.RequestUri.Append(path);
+                    return;
+                }
+
                 r.RequestUri = new Uri(path, UriKind.Relative);
             });
         }
@@ -71,6 +77,26 @@ namespace Necessity.Rest
             return req.Pipe(r =>
             {
                 r.Headers.Add(key, value);
+            });
+        }
+
+        public static HttpRequestMessage BaseAddress(this HttpRequestMessage req, string baseAddress)
+        {
+            return req.Pipe(r =>
+            {
+                r.RequestUri = new Uri(baseAddress, UriKind.Absolute);
+            });
+        }
+
+        public static HttpRequestMessage BasicAuth(this HttpRequestMessage req, string username, string password)
+        {
+            return req.Pipe(r =>
+            {
+                r.Headers.Authorization = new AuthenticationHeaderValue(
+                    "Basic",
+                    Convert.ToBase64String(
+                        Encoding.GetEncoding("ASCII")
+                            .GetBytes($"{username}:{password}")));
             });
         }
 

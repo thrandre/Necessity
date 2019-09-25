@@ -16,6 +16,8 @@ namespace Necessity.Rest
             Serializer = serializer;
         }
 
+        public Action<HttpRequestMessage> PreConfigureRequest { get; set; }
+
         private HttpClient Client { get; }
         private ISerializer Serializer { get; }
 
@@ -26,7 +28,8 @@ namespace Necessity.Rest
         {
             return Client
                 .RequestAsync(
-                    configureRequest
+                    PreConfigureRequest
+                        .Compose(configureRequest)
                         .Compose(r =>
                         {
                             r.Properties.Add(SerializerReferenceKey, Serializer);
