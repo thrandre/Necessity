@@ -43,7 +43,7 @@ namespace Necessity.Rest
                     async res => throw new RestClientException(res.StatusCode, await res.Content.ReadAsStringAsync()));
         }
 
-        private async Task<T> GetResult<T>(HttpContent content, ISerializer serializer, T anonymousObjectPrototype = default)
+        protected async Task<T> GetResult<T>(HttpContent content, ISerializer serializer, T anonymousObjectPrototype = default)
         {
             if (typeof(T) == typeof(string))
             {
