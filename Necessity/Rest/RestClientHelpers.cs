@@ -57,10 +57,11 @@ namespace Necessity.Rest
 
                 if (serializer.CanSerializeToStream)
                 {
-                    r.Header("Content-Type", contentType);
                     r.Content = new StreamContent(
                         new MemoryStream()
                             .Pipe(s => serializer.SerializeToStream(content, s)));
+
+                    r.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
 
                     return;
                 }
