@@ -29,11 +29,11 @@ namespace Necessity.Rest
             return Client
                 .RequestAsync(
                     PreConfigureRequest
-                        .Compose(configureRequest)
                         .Compose(r =>
                         {
                             r.Properties.Add(SerializerReferenceKey, Serializer);
                         })
+                        .Compose(configureRequest)
                         .Compose(r => r.Path(path))
                         .Compose(r =>
                         {
