@@ -85,6 +85,14 @@ namespace Necessity.Rest
         {
             return req.Pipe(r =>
             {
+                if (r.RequestUri != null && !r.RequestUri.IsAbsoluteUri)
+                {
+                    r.RequestUri = new Uri(baseAddress, UriKind.Absolute)
+                        .Append(r.RequestUri.ToString());
+
+                    return;
+                }
+
                 r.RequestUri = new Uri(baseAddress, UriKind.Absolute);
             });
         }

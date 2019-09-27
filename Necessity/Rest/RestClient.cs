@@ -33,8 +33,8 @@ namespace Necessity.Rest
                         {
                             r.Properties.Add(SerializerReferenceKey, Serializer);
                         })
-                        .Compose(configureRequest)
                         .Compose(r => r.Path(path))
+                        .Compose(configureRequest)
                         .Compose(r =>
                         {
                             r.Properties.Remove(SerializerReferenceKey);
