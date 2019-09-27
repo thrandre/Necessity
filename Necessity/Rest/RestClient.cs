@@ -10,16 +10,18 @@ namespace Necessity.Rest
     {
         internal const string SerializerReferenceKey = "X-RestClient-Serializer";
 
-        public RestClient(HttpClient client, ISerializer serializer)
+        public RestClient(HttpClient client, ISerializer serializer, Action<string, object> logHook = null)
         {
             Client = client;
             Serializer = serializer;
+            LogHook = logHook;
         }
 
         public Action<HttpRequestMessage> PreConfigureRequest { get; set; }
 
         private HttpClient Client { get; }
         private ISerializer Serializer { get; }
+        private Action<string, object> LogHook { get; }
 
         public Task<T> Request<T>(
             string path,
@@ -38,8 +40,13 @@ namespace Necessity.Rest
                         .Compose(r =>
                         {
                             r.Properties.Remove(SerializerReferenceKey);
-                        }),
-                    async res => await onSuccess(res, Serializer),
+                        })
+                        .Compose(r => LogHook?.Invoke("Sending request: {@Request}", r)),
+                    async res =>
+                    {
+                        LogHook?.Invoke("Got response: {@Response}", res);
+                        return await onSuccess(res, Serializer);
+                    },
                     async res => throw new RestClientException(res.StatusCode, await res.Content.ReadAsStringAsync()));
         }
 
