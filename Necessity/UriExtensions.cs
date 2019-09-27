@@ -114,7 +114,7 @@ public static class UriUtils
 {
     public static string JoinPaths(string existingPath, string appendablePath)
     {
-        return existingPath.TrimEnd('/') + "/" + appendablePath.TrimStart('/');
+        return (existingPath.TrimEnd('/') + "/" + appendablePath.TrimStart('/')).TrimStart('/');
     }
 }
 
