@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Necessity.Serialization.Abstractions;
+using Necessity.Url;
 
 namespace Necessity.Rest
 {
@@ -21,21 +22,19 @@ namespace Necessity.Rest
         {
             return req.Pipe(r =>
             {
-                if (r.RequestUri != null && r.RequestUri.IsAbsoluteUri)
-                {
-                    r.RequestUri = r.RequestUri.Append(path);
-                    return;
-                }
-
-                r.RequestUri = new Uri(path, UriKind.Relative);
+                r.RequestUri = r.RequestUri != null
+                    ? UrlInfo.Parse(r.RequestUri.ToString()).Append(path).ToUri()
+                    : UrlInfo.Parse(path).ToUri();
             });
         }
 
-        public static HttpRequestMessage QueryParams(this HttpRequestMessage req, object queryParams)
+        public static HttpRequestMessage QueryParams<T>(this HttpRequestMessage req, T queryParams)
         {
             return req.Pipe(r =>
             {
-                r.RequestUri = r.RequestUri.AppendQueryParameters(queryParams);
+                r.RequestUri = r.RequestUri != null
+                    ? UrlInfo.Parse(r.RequestUri.ToString()).AppendQueryParameters(queryParams).ToUri()
+                    : new UrlInfo().AppendQueryParameters(queryParams).ToUri();
             });
         }
 
@@ -85,15 +84,9 @@ namespace Necessity.Rest
         {
             return req.Pipe(r =>
             {
-                if (r.RequestUri != null && !r.RequestUri.IsAbsoluteUri)
-                {
-                    r.RequestUri = new Uri(baseAddress, UriKind.Absolute)
-                        .Append(r.RequestUri.ToString());
-
-                    return;
-                }
-
-                r.RequestUri = new Uri(baseAddress, UriKind.Absolute);
+                r.RequestUri = r.RequestUri != null
+                        ? UrlInfo.Parse(r.RequestUri.ToString()).Append(baseAddress).ToUri()
+                        : UrlInfo.Parse(baseAddress).ToUri();
             });
         }
 

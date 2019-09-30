@@ -1,29 +1,27 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
-using System.Collections.Generic;
 
 // ReSharper disable InconsistentNaming
 namespace Necessity.Tests
 {
     [TestClass]
-    public class UriExtensions_AppendPath
+    public class UrlExtensions_Append
     {
         [TestMethod]
         public void Should_append_path_to_URI()
         {
-            new Uri("https://consul.io/v1").AppendPath("kv").AppendPath("foo").AppendPath("bar")
+            UrlInfo.Parse("https://consul.io/v1").Append("kv").Append("foo").Append("bar")
                 .ToString().Should().Be("https://consul.io/v1/kv/foo/bar");
         }
     }
 
     [TestClass]
-    public class UriExtensions_AppendQueryStringParameters
+    public class UrlExtensions_AppendQueryParameters
     {
         [TestMethod]
         public void Should_append_path_to_URI()
         {
-            new Uri("https://consul.io/v1").AppendPath("kv").AppendPath("foo").AppendPath("bar")
+            UrlInfo.Parse("https://consul.io/v1").Append("kv").Append("foo").Append("bar")
                 .AppendQueryParameters(new { foobar = 42 })
                 .ToString().Should().Be("https://consul.io/v1/kv/foo/bar?foobar=42");
         }
@@ -31,40 +29,35 @@ namespace Necessity.Tests
         [TestMethod]
         public void Should_append_path_to_relative_URI()
         {
-            new Uri("users", UriKind.Relative).AppendPath("kv").AppendPath("foo").AppendPath("bar")
+            UrlInfo.Parse("users").Append("kv").Append("foo").Append("bar")
                 .AppendQueryParameters(new { foobar = 42 })
-                .ToString().Should().Be("/users/kv/foo/bar?foobar=42");
+                .ToString().Should().Be("users/kv/foo/bar?foobar=42");
         }
 
         [TestMethod]
-        [Ignore]
-        public void Should_handle_nested_querystrings()
+        public void Should_append_path_to_relative_URI_while_removing_leading_and_trailing_slashes()
         {
-            new Uri("https://portal.dev.service.esmartapi.com")
-                .AppendQueryParameters(new { redirectUrl = UriExtensions.EncodeUrlFragment("http://localhost:44301/landing/{{tenantKey}}/{{participantKey}}?redirectUrl=/") })
-                .ToString().Should().Be($"https://portal.dev.service.esmartapi.com/?redirectUrl={UriExtensions.EncodeUrlFragment("http://localhost:44301/landing/{{tenantKey}}/{{participantKey}}?redirectUrl=/")}");
+            UrlInfo.Parse("/users").Append("kv").Append("foo").Append("bar/")
+                .AppendQueryParameters(new { foobar = 42 })
+                .ToString().Should().Be("users/kv/foo/bar?foobar=42");
         }
     }
 
     [TestClass]
-    public class UriExtensions_Parse
+    public class UrlExtensions_PracticalTests
     {
         [TestMethod]
-        [Ignore]
-        public void Should_parse_uri_correctly()
+        public void Should_append_base_path_to_relative_url()
         {
-            var res = new Uri($"https://cg2.dev.service.esmartapi.com/landing/esmart_dev/1?redirectUrl={UriExtensions.EncodeUrlFragment("https://www.vg.no?redirectUrl=https://www.db.no")}")
-                .Parse("/landing/{tenantKey}/{participantKey}");
+            var url = UrlInfo.Parse("users").Append("http://www.vg.no").ToString();
+            url.Should().Be("http://www.vg.no/users");
+        }
 
-            res.BasePath.Should().Be("https://cg2.dev.service.esmartapi.com");
-            res.RelativePath.Should().Be("/landing/esmart_dev/1");
-
-            res.UriParams.Should().Contain(
-                new KeyValuePair<string, string>("tenantKey", "esmart_dev"),
-                new KeyValuePair<string, string>("participantKey", "1"));
-
-            res.QueryParams.Should().Contain(
-                new KeyValuePair<string, string>("redirectUrl", UriExtensions.EncodeUrlFragment("https://www.vg.no?redirectUrl=https://www.db.no")));
+        [TestMethod]
+        public void Should_append_base_path_to_query_string()
+        {
+            var url = new UrlInfo().AppendQueryParameters(new { foo = "bar", bar = "baz" }).Append("http://www.vg.no#frag").ToString();
+            url.Should().Be("http://www.vg.no?foo=bar&bar=baz#frag");
         }
     }
 }
